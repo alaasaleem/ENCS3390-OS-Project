@@ -7,17 +7,19 @@
 class Process:
     # Define constructor that initializes the attributes of the process object
     def __init__(self, name, arrival_time, burst_time, priority): 
-          self.name = name                       #assign the name of the process
-          self.arrival_time = arrival_time       #assign the arrival_time of the process
-          self.burst_time = burst_time           #assign the burst_time of the process
-          self.priority = priority               #assign the priority of the process
+          self.name = name                       # assign the name of the process
+          self.arrival_time = arrival_time       # assign the arrival_time of the process
+          self.burst_time = burst_time           # assign the burst_time of the process
+          self.remaining_time = burst_time       # initialize the remaining time with the burst time
+          self.priority = priority               # assign the priority of the process
 
 
 # Round Robin (RR) Scheduling algorithm
 def RR(processes, time_quantum):
      # Create a queue of processes 
-     queue = processes.copy()         #Create a copy of the list of processes 
-     total_execution_time = 0         #Variable "total_execution_time" to keep track of the total execution time (time for executing all processes in the queue)
+     queue = processes.copy()         # Create a copy of the list of processes 
+     total_execution_time = 0         # Variable "total_execution_time" to keep track of the total execution time (time for executing all processes in the queue)
+     waiting_times = {}               # Dictionary to store the waiting times for each process
      
      # Loop until the queue of processes is empty
      while queue:
@@ -25,28 +27,37 @@ def RR(processes, time_quantum):
          current_process = queue.pop(0) 
          
          # If process execution completed within the time quantum
-         if current_process.burst_time <= time_quantum:
-              total_execution_time += current_process.burst_time #Update the total execution time 
-              print(f"Process {current_process.name} executed for {current_process.burst_time} time units")
+         if current_process.remaining_time <= time_quantum:
+              execution_time = current_process.remaining_time
+              total_execution_time += execution_time  # Update the total execution time 
+              waiting_time = total_execution_time - current_process.arrival_time - current_process.burst_time
+              waiting_times[current_process.name] = waiting_time
+              print(f"Process {current_process.name} executed for {execution_time} time units\nProcess {current_process.name} is completed with completion time = {total_execution_time}, Turnaround Time = {total_execution_time - current_process.arrival_time}, Waiting Time = {waiting_time}")
          
          # If the process execution interrupted, put it back in the queue with remaining burst time  
          else:
-              total_execution_time += time_quantum # Update the total execution time 
-              remaining_burst_time = current_process.burst_time - time_quantum # Calculate the remaining time quantum
-              print(f"Process {current_process.name} executed for {time_quantum} time units and is still not completed")
-              # Create a new process object with the remaining burst time and enqueue it
-              queue.append(Process(current_process.name, current_process.arrival_time, remaining_burst_time, current_process.priority))
+              execution_time = time_quantum
+              total_execution_time += execution_time  # Update the total execution time 
+              current_process.remaining_time -= execution_time  # Update the remaining time for the process
+              queue.append(current_process)
+              print(f"Process {current_process.name} executed for {execution_time}, {current_process.remaining_time} remains")
               
      print("All processes executed :)")
+     
+     # Print the waiting times
+     print("\nWaiting Times:")
+     for process in processes:
+         print(f"{process.name}: {waiting_times[process.name]}")
 
 # Example usage
 processes = [
     Process("P1", 0, 24, 1),
-    Process("P2", 2, 3, 1),
-    Process("P3", 4, 3, 1)
+    Process("P2", 0, 3, 1),
+    Process("P3", 0, 3, 1)
 ]
 
 time_quantum = 4
 
 print("Round Robin Scheduling:")
 RR(processes, time_quantum)
+
