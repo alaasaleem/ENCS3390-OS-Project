@@ -1,7 +1,5 @@
-#########################################
-#  Project#3: CPU Scheduling Simulator  #
-# Ebaa Taleeb, Raha Zabade, Alaa Saleem #
-#########################################
+
+
 #include <stdio.h>
 
 #define MAX_NAME_LENGTH 10
@@ -44,28 +42,28 @@ void roundRobinScheduling(struct Process processes[], int numProcesses, int time
 
 void printProcessTable(struct Process processes[], int numProcesses) {
     printf("\nProcess Table:\n");
-    printf("+----+------------+-----------+\n");
-    printf("| ID | Burst Time | Arrival   |\n");
-    printf("|    |            | Time      |\n");
-    printf("+----+------------+-----------+\n");
+    printf("+----+------------+--------------+\n");
+    printf("| ID | Burst Time | Arrival Time |\n");
+    printf("|    |            |              |\n");
+    printf("+----+------------+--------------+\n");
     for (int i = 0; i < numProcesses; i++) {
         struct Process *process = &processes[i];
         printf("| %-2s | %-10d | %-9d |\n", process->name, process->burstTime, process->arrivalTime);
     }
-    printf("+----+------------+-----------+\n");
+    printf("+----+------------+--------------+\n");
 }
 
 void printMetricsTable(struct Process processes[], int numProcesses) {
     printf("\nMetrics Table:\n");
-    printf("+----+-------------+-----------------+--------------+\n");
-    printf("| ID | Completion  | Turnaround Time | Waiting Time |\n");
-    printf("|    | Time        |                 |              |\n");
-    printf("+----+-------------+-----------------+--------------+\n");
+    printf("+----+-------------+-----------------+------------------+\n");
+    printf("| ID | Completion Time | Turnaround Time | Waiting Time |\n");
+    printf("|    |                 |                 |              |\n");
+    printf("+----+-------------+-----------------+------------------+\n");
     for (int i = 0; i < numProcesses; i++) {
         struct Process *process = &processes[i];
         printf("| %-2s | %-11d | %-15d | %-12d |\n", process->name, process->completionTime, process->turnaroundTime, process->waitingTime);
     }
-    printf("+----+-------------+-----------------+--------------+\n");
+    printf("+----+-------------+-----------------+------------------+\n");
 }
 
 int main() {
