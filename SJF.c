@@ -20,10 +20,12 @@ void sjfScheduling(struct Process processes[], int numProcesses) {
     while (completedProcesses < numProcesses) {
         int shortestJobIndex = -1;
         int shortestJobBurstTime = __INT_MAX__;
+        int start = currentTime;
+        char* currentProcess = NULL;
 
         for (int i = 0; i < numProcesses; i++) {
             struct Process *process = &processes[i];
-            
+
             if (process->remainingTime > 0 && process->arrivalTime <= currentTime) {
                 if (process->burstTime < shortestJobBurstTime) {
                     shortestJobIndex = i;
@@ -40,8 +42,13 @@ void sjfScheduling(struct Process processes[], int numProcesses) {
             process->waitingTime = process->turnaroundTime - process->burstTime;
             completedProcesses++;
             currentTime = process->completionTime;
+            currentProcess = process->name;
         } else {
             currentTime++;
+        }
+
+        if (currentProcess != NULL) {
+            printf("From %d to %d: %s\n", start, currentTime, currentProcess);
         }
     }
 }
@@ -104,4 +111,3 @@ int main() {
 
     return 0;
 }
-
