@@ -18,17 +18,21 @@ struct Process {
 void roundRobinScheduling(struct Process processes[], int numProcesses, int timeQuantum) {
     int currentTime = 0;
     int completedProcesses = 0;
+    int start = 0;
 
     while (completedProcesses < numProcesses) {
         for (int i = 0; i < numProcesses; i++) {
             struct Process *process = &processes[i];
             
             if (process->remainingTime > 0) {
+                start = currentTime;
                 int executionTime = (process->remainingTime > timeQuantum) ? timeQuantum : process->remainingTime;
                 
                 process->remainingTime -= executionTime;
                 currentTime += executionTime;
                 
+                printf("From %d to %d: %s\n", start, currentTime, process->name);
+
                 if (process->remainingTime == 0) {
                     process->completionTime = currentTime;
                     process->turnaroundTime = process->completionTime - process->arrivalTime;
@@ -39,6 +43,7 @@ void roundRobinScheduling(struct Process processes[], int numProcesses, int time
         }
     }
 }
+
 
 void printProcessTable(struct Process processes[], int numProcesses) {
     printf("\nProcess Table:\n");
