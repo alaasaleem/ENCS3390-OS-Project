@@ -59,7 +59,6 @@ void roundRobinScheduling(struct Process processes[], int numProcesses, int time
     int currentTime = 0;
     int completedProcesses = 0;
     int start = 0;
-
     while (completedProcesses < numProcesses) {
         for (int i = 0; i < numProcesses; i++) {
             struct Process *process = &processes[i];
@@ -151,11 +150,24 @@ void printMetricsTable(struct Process processes[], int numProcesses) {
     printf("| ID | Completion Time | Turnaround Time  | Waiting Time |\n");
     printf("|    |                 |                  |              |\n");
     printf("+----+-----------------+------------------+--------------+\n");
+
+    int totalWaitingTime = 0;
+    int totalTurnaroundTime = 0;
+
     for (int i = 0; i < numProcesses; i++) {
         struct Process *process = &processes[i];
         printf("%-7s  %-18d  %-17d  %-12d \n", process->name, process->completionTime, process->turnaroundTime, process->waitingTime);
+
+        totalWaitingTime += process->waitingTime;
+        totalTurnaroundTime += process->turnaroundTime;
     }
+
+    double avgWaitingTime = (double)totalWaitingTime / numProcesses;
+    double avgTurnaroundTime = (double)totalTurnaroundTime / numProcesses;
+
     printf("+----+-----------------+------------------+--------------+\n");
+    printf("\nAverage Waiting Time: %.2f\n", avgWaitingTime);
+    printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
 }
 
 
@@ -197,6 +209,7 @@ int main() {
     switch (algorithmChoice) {
         case 1:
             printProcessTable(processes, numProcesses);
+            printf("\nThe order in which processes or threads are selected for execution:\n");
             sjfScheduling(processes, numProcesses);
             printMetricsTable(processes, numProcesses);
             break;
@@ -204,11 +217,13 @@ int main() {
             printf("Enter time quantum for Round Robin: ");
             scanf("%d", &timeQuantum);
             printProcessTable(processes, numProcesses);
+            printf("\nThe order in which processes or threads are selected for execution:\n");
             roundRobinScheduling(processes, numProcesses, timeQuantum);
             printMetricsTable(processes, numProcesses);
             break;
         case 3:
             printProcessTable(processes, numProcesses);
+            printf("\nThe order in which processes or threads are selected for execution:\n");
             priorityScheduling(processes, numProcesses);
             printMetricsTable(processes, numProcesses);
             break;
