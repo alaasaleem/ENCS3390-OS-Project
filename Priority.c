@@ -1,5 +1,5 @@
-
 #include <stdio.h>
+#include <string.h>
 
 #define MAX_NAME_LENGTH 10
 #define MAX_PROCESSES 100
@@ -12,18 +12,19 @@ struct Process {
     int completionTime;
     int turnaroundTime;
     int waitingTime;
-    int priority; // New field for priority
+    int priority;
 };
 
 void priorityScheduling(struct Process processes[], int numProcesses) {
     int currentTime = 0;
     int completedProcesses = 0;
+    char currentProcess[MAX_NAME_LENGTH] = "";
+    int start = 0; // Added declaration of 'start' variable
 
     while (completedProcesses < numProcesses) {
         int highestPriority = -1;
         int highestPriorityIndex = -1;
 
-        // Find the process with the highest priority among the arrived processes
         for (int i = 0; i < numProcesses; i++) {
             struct Process *process = &processes[i];
 
@@ -35,24 +36,34 @@ void priorityScheduling(struct Process processes[], int numProcesses) {
             }
         }
 
-        // If no process found with the highest priority, increment the current time
         if (highestPriorityIndex == -1) {
             currentTime++;
             continue;
         }
 
         struct Process *process = &processes[highestPriorityIndex];
-        process->remainingTime--;
+        if (strcmp(process->name, currentProcess) != 0) {
+            if (strlen(currentProcess) > 0) {
+                printf("From %d to %d: %s\n", start, currentTime, currentProcess);
+            }
+            start = currentTime;
+            strcpy(currentProcess, process->name);
+        }
         currentTime++;
+        process->remainingTime--;
 
         if (process->remainingTime == 0) {
+            printf("From %d to %d: %s\n", start, currentTime, currentProcess);
             process->completionTime = currentTime;
             process->turnaroundTime = process->completionTime - process->arrivalTime;
             process->waitingTime = process->turnaroundTime - process->burstTime;
             completedProcesses++;
+            strcpy(currentProcess, "");
         }
     }
 }
+
+
 
 void printProcessTable(struct Process processes[], int numProcesses) {
     printf("\nProcess Table:\n");
