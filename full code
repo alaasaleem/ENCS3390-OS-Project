@@ -352,6 +352,7 @@ int main() {
         printf("9. Exit\n");
         printf("Enter your option: ");
         scanf("%d", &option);
+        int numTasks;
 
         switch (option) {
             case 1:
@@ -398,7 +399,6 @@ int main() {
                 break;
             case 8:
             // Generate a sequence of tasks
-            int numTasks;
             printf("Enter the number of tasks: ");
             scanf("%d", &numTasks);
 
