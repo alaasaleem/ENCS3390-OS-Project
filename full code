@@ -330,6 +330,50 @@ float calculateAverageWaitingTime(struct TaskQueue* taskQueue) {
     return (float)totalWaitingTime / taskQueue->size;
 }
 
+
+// Function to print the Gantt chart
+void printGanttChart(struct TaskQueue* taskQueue) {
+    printf("\nGantt Chart:\n");
+
+    // Print the horizontal timeline
+    printf("+");
+    for (int i = 0; i < 65; i++) {
+        printf("-");
+    }
+    printf("+\n");
+
+    // Print the process names and their execution time
+    int currentTime = 0;
+    for (int i = taskQueue->front; i <= taskQueue->rear; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        printf("| %-5s ", process->name);
+        int executionTime = process->completionTime - currentTime;
+        currentTime = process->completionTime;
+    }
+    printf("|\n");
+
+    // Print the horizontal timeline again
+    printf("+");
+    for (int i = 0; i < 65; i++) {
+        printf("-");
+    }
+    printf("+\n");
+
+    // Print the timeline with time units
+    currentTime = 0;
+    printf("0");
+    for (int i = taskQueue->front; i <= taskQueue->rear; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        int executionTime = process->completionTime - currentTime;
+        for (int j = 0; j < executionTime; j++) {
+            printf(" ");
+        }
+        currentTime = process->completionTime;
+        printf("%2d", currentTime);
+    }
+    printf("\n\n");
+}
+
 int main() {
     struct TaskQueue taskQueue;
     taskQueue.front = 0;
@@ -378,19 +422,26 @@ int main() {
                 removeProcess(&taskQueue, process.name);
                 break;
             case 3:
+                // Run SJF Scheduling
                 sjfScheduling(&taskQueue);
+                printGanttChart(&taskQueue);
                 printf("SJF Scheduling completed.\n");
                 break;
             case 4:
-                printf("Enter the time quantum: ");
+                // Run Round Robin Scheduling
+                printf("\nEnter time quantum: ");
                 scanf("%d", &timeQuantum);
                 roundRobinScheduling(&taskQueue, timeQuantum);
+                printGanttChart(&taskQueue);
                 printf("Round Robin Scheduling completed.\n");
                 break;
             case 5:
+                // Run Priority Scheduling
                 priorityScheduling(&taskQueue);
+                printGanttChart(&taskQueue);
                 printf("Priority Scheduling completed.\n");
-                break;
+            break;
+            
             case 6:
                 printProcessTable(&taskQueue);
                 break;
