@@ -37,6 +37,8 @@ void printMetricsTable(struct TaskQueue* taskQueue);
 float calculateAverageTurnaroundTime(struct TaskQueue* taskQueue);
 float calculateAverageWaitingTime(struct TaskQueue* taskQueue);
 void removeProcess(struct TaskQueue* queue, char* processName);
+void printGanttChart(struct TaskQueue* taskQueue);
+void generateReports(struct TaskQueue* taskQueue);
 int min(int a, int b);
 
 void removeProcess(struct TaskQueue* queue, char* processName) {
@@ -374,6 +376,21 @@ void printGanttChart(struct TaskQueue* taskQueue) {
     printf("\n\n");
 }
 
+void generateReports(struct TaskQueue* taskQueue) {
+    printf("*************************************** SJF Scheduling Performance Metrics ***********************************************\n");
+    sjfScheduling(taskQueue);
+    printMetricsTable(taskQueue);
+
+    printf("\n*************************************** Round Robin Scheduling Performance Metrics ***********************************************\n");
+    roundRobinScheduling(taskQueue, 2); // Adjust the time quantum as needed
+    printMetricsTable(taskQueue);
+
+    printf("\n*************************************** Priority Scheduling Performance Metrics ***********************************************\n");
+    priorityScheduling(taskQueue);
+    printMetricsTable(taskQueue);
+}
+
+
 int main() {
     struct TaskQueue taskQueue;
     taskQueue.front = 0;
@@ -392,8 +409,9 @@ int main() {
         printf("5. Run Priority Scheduling\n");
         printf("6. Print Process Table\n");
         printf("7. Print Metrics Table\n");
-        printf("8.genarate tasks and simulate Completion and Arrival Time\n");
-        printf("9. Exit\n");
+        printf("8. Genarate tasks and simulate Completion and Arrival Time\n");
+        printf("9. Genarate Reports\n");
+        printf("10. Exit\n");
         printf("Enter your option: ");
         scanf("%d", &option);
         int numTasks;
@@ -468,21 +486,24 @@ int main() {
                 enqueue(&taskQueue, process);
                 printf("Task enqueued successfully.\n");
             }
-                        // Simulate completion of tasks
+            // Simulate completion of tasks
             simulateCompletion(&taskQueue);
             printf("Task completion simulation completed.\n");
 
             break;
-
             
             case 9:
+                generateReports(&taskQueue);
+                break;
+                                
+            case 10:
                 printf("Exiting the program.\n");
                 break;
 
             default:
                 printf("Invalid option. Please try again.\n");
         }
-    } while (option != 9);
+    } while (option != 10);
 
     return 0;
 
