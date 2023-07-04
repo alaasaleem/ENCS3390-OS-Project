@@ -277,6 +277,25 @@ void priorityScheduling(struct TaskQueue* taskQueue) {
     }
 }
 
+
+    int currentTime = 0;
+
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+
+        // Calculate waiting time
+        process->waitingTime = currentTime - process->arrivalTime;
+        if (process->waitingTime < 0)
+            process->waitingTime = 0;
+
+        // Calculate completion time and turnaround time
+        process->completionTime = currentTime + process->burstTime;
+        process->turnaroundTime = process->completionTime - process->arrivalTime;
+
+        currentTime = process->completionTime;
+    }
+}
+
 // Prints the process table
 void printProcessTable(struct TaskQueue* taskQueue) {
     printf("\nProcess Table:\n");
@@ -417,7 +436,7 @@ int main() {
                 printf("Arrival Time: ");
                 scanf("%d", &process.arrivalTime);
                 printf("Burst Time: ");
-                scanf("%d", &process.burstTime);
+                scanf("%d", &process.yburstTime);
                 printf("Priority: ");
                 scanf("%d", &process.priority);
                 process.remainingTime = process.burstTime;
