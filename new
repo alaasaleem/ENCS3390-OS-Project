@@ -209,34 +209,34 @@ int min(int a, int b) {
 // Performs round-robin scheduling on the task queue with a given time quantum
 void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
     int currentTime = 0;
+    int completedProcesses = 0;
 
-    while (1) {
-        int done = 1;
+    while (completedProcesses < taskQueue->size) {
+        int i = taskQueue->front;
 
-        for (int i = 0; i < taskQueue->size; i++) {
+        while (i <= taskQueue->rear) {
             struct Process* process = &taskQueue->processes[i];
 
             if (process->remainingTime > 0) {
-                done = 0;
+                int executionTime = min(process->remainingTime, timeQuantum);
 
-                if (process->remainingTime > timeQuantum) {
-                    // Process still has remaining time after executing for the time quantum
-                    currentTime += timeQuantum;
-                    process->remainingTime -= timeQuantum;
-                }
-                else {
-                    // Process completes execution within the time quantum
-                    currentTime += process->remainingTime;
-                    process->waitingTime = currentTime - process->arrivalTime - process->burstTime;
-                    process->remainingTime = 0;
+                process->remainingTime -= executionTime;
+                currentTime += executionTime;
+
+                if (process->remainingTime == 0) {
+                    // Process completed
+                    process->completionTime = currentTime;
+                    process->turnaroundTime = process->completionTime - process->arrivalTime;
+                    process->waitingTime = process->turnaroundTime - process->burstTime;
+                    completedProcesses++;
                 }
             }
-        }
 
-        if (done == 1)
-            break;
+            i = (i + 1) % MAX_PROCESSES;  // Circularly traverse the queue
+        }
     }
 }
+
 
 // Performs priority scheduling on the task queue
 void priorityScheduling(struct TaskQueue* taskQueue) {
@@ -437,4 +437,3 @@ int main() {
     return 0;
 
 }
-
