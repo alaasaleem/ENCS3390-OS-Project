@@ -231,6 +231,15 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
     int currentTime = 0;
     int completedProcesses = 0;
 
+    // Create a Gantt chart array to store process names and corresponding execution times
+    struct GanttEntry {
+        char processName[10];
+        int executionTime;
+    };
+    struct GanttEntry ganttChart[MAX_PROCESSES * 100];  // Assuming maximum 100 time slots per process
+
+    int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
+
     while (completedProcesses < taskQueue->size) {
         int i = taskQueue->front;
 
@@ -238,10 +247,15 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
             struct Process* process = &taskQueue->processes[i];
 
             if (process->remainingTime > 0) {
-                int executionTime = min(process->remainingTime, timeQuantum);
+                int executionTime = (process->remainingTime > timeQuantum) ? timeQuantum : process->remainingTime;
 
                 process->remainingTime -= executionTime;
                 currentTime += executionTime;
+
+                // Store the Gantt chart entry
+                strcpy(ganttChart[ganttIndex].processName, process->name);
+                ganttChart[ganttIndex].executionTime = executionTime;
+                ganttIndex++;
 
                 if (process->remainingTime == 0) {
                     // Process completed
@@ -255,7 +269,24 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
             i = (i + 1) % MAX_PROCESSES;  // Circularly traverse the queue
         }
     }
+
+    // Print the Gantt chart
+    printf("\nGantt Chart:\n");
+    printf("-------------\n");
+    for (int i = 0; i < ganttIndex; i++) {
+        printf("| %s ", ganttChart[i].processName);
+    }
+    printf("|\n");
+    printf("-------------\n");
+    printf("0");
+    int cumulativeTime = 0;
+    for (int i = 0; i < ganttIndex; i++) {
+        cumulativeTime += ganttChart[i].executionTime;
+        printf("------%d", cumulativeTime);
+    }
+    printf("\n");
 }
+
 
 
 void priorityScheduling(struct TaskQueue* taskQueue) {
