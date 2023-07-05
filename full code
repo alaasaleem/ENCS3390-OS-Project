@@ -37,6 +37,8 @@ void printMetricsTable(struct TaskQueue* taskQueue);
 float calculateAverageTurnaroundTime(struct TaskQueue* taskQueue);
 float calculateAverageWaitingTime(struct TaskQueue* taskQueue);
 void removeProcess(struct TaskQueue* queue, char* processName);
+void resetTaskQueue(struct TaskQueue* taskQueue);
+
 int min(int a, int b);
 
 void removeProcess(struct TaskQueue* queue, char* processName) {
@@ -298,8 +300,7 @@ void priorityScheduling(struct TaskQueue* taskQueue) {
                 struct Process temp = taskQueue->processes[j];
                 taskQueue->processes[j] = taskQueue->processes[j + 1];
                 taskQueue->processes[j + 1] = temp;
-            }
-            else if (taskQueue->processes[j].priority == taskQueue->processes[j + 1].priority) {
+            } else if (taskQueue->processes[j].priority == taskQueue->processes[j + 1].priority) {
                 // If two processes have equal priority, the one with a lower arrival time should have higher priority
                 if (taskQueue->processes[j].arrivalTime > taskQueue->processes[j + 1].arrivalTime) {
                     struct Process temp = taskQueue->processes[j];
@@ -354,6 +355,7 @@ void priorityScheduling(struct TaskQueue* taskQueue) {
     }
     printf("\n");
 }
+
 
 
 
@@ -417,6 +419,18 @@ float calculateAverageWaitingTime(struct TaskQueue* taskQueue) {
     return (float)totalWaitingTime / taskQueue->size;
 }
 
+
+
+void resetTaskQueue(struct TaskQueue* taskQueue) {
+    for (int i = taskQueue->front; i <= taskQueue->rear; i++) {
+        taskQueue->processes[i].remainingTime = taskQueue->processes[i].burstTime;
+        taskQueue->processes[i].completionTime = 0;
+        taskQueue->processes[i].turnaroundTime = 0;
+        taskQueue->processes[i].waitingTime = 0;
+    }
+}
+
+
 int main() {
     struct TaskQueue taskQueue;
     taskQueue.front = 0;
@@ -435,8 +449,9 @@ int main() {
         printf("5. Run Priority Scheduling\n");
         printf("6. Print Process Table\n");
         printf("7. Print Metrics Table\n");
-        printf("8.genarate tasks and simulate Completion and Arrival Time\n");
-        printf("9. Exit\n");
+        printf("8. Genarate tasks and simulate Completion and Arrival Time\n");
+        printf("9. Genarate Reports\n");        
+        printf("10. Exit\n");
         printf("Enter your option: ");
         scanf("%d", &option);
         
@@ -513,13 +528,33 @@ int main() {
 
             
             case 9:
-                printf("Exiting the program.\n");
+                printf("\nEnter the time quantum for the Round Robin: ");
+                scanf("%d", &timeQuantum);
+                printf("*************************************** SJF Scheduling Performance Metrics ***********************************************\n");
+                sjfScheduling(&taskQueue);
+                printMetricsTable(&taskQueue);
+                resetTaskQueue(&taskQueue);
+
+                printf("\n*************************************** Round Robin Scheduling Performance Metrics ***********************************************\n");
+                roundRobinScheduling(&taskQueue, timeQuantum); 
+                printMetricsTable(&taskQueue);
+                resetTaskQueue(&taskQueue);    
+
+                printf("\n*************************************** Priority Scheduling Performance Metrics ***********************************************\n");
+                priorityScheduling(&taskQueue);
+                printMetricsTable(&taskQueue);
+                resetTaskQueue(&taskQueue);                  
                 break;
+            
+            case 10:
+                printf("Exiting the program.\n");
+                break;           
+            
 
             default:
                 printf("Invalid option. Please try again.\n");
         }
-    } while (option != 9);
+    } while (option != 10);
 
     return 0;
 
