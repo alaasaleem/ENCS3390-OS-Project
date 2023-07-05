@@ -143,6 +143,26 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
 
         currentTime = process->completionTime;
     }
+    
+        // Print the Gantt chart
+    printf("\nGantt Chart:\n");
+    printf("---------");
+    for (int i = 0; i < taskQueue->size; i++) {
+        printf("--------");
+    }
+    printf("\n|");
+    for (int i = 0; i < taskQueue->size; i++) {
+        printf("   %s    |", taskQueue->processes[i].name);
+    }
+    printf("\n---------");
+    for (int i = 0; i < taskQueue->size; i++) {
+        printf("--------");
+    }
+    printf("\n0");
+    for (int i = 0; i < taskQueue->size; i++) {
+        printf("--------%d", taskQueue->processes[i].completionTime);
+    }
+    printf("\n");
 }
 
 
