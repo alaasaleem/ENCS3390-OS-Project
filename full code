@@ -326,6 +326,33 @@ void priorityScheduling(struct TaskQueue* taskQueue) {
 
         currentTime = process->completionTime;
     }
+
+    // Print the Gantt chart
+    printf("\nGantt Chart:\n");
+    printf("-----------------------------------------\n");
+    printf("| ");
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        printf("%s\t| ", process->name);
+    }
+    printf("\n");
+    printf("-----------------------------------------\n");
+
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        printf("%d", process->completionTime - process->burstTime);
+
+        for (int j = 0; j < strlen(process->name) + 1; j++) {
+            printf(" ");
+        }
+
+        if (i == taskQueue->size - 1) {
+            printf("%d", process->completionTime);
+        }
+
+        printf("\t");
+    }
+    printf("\n");
 }
 
 
