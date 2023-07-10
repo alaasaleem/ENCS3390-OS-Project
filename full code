@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-
 #define MAX_NAME_LENGTH 10
 #define MAX_PROCESSES 100
-
 // Structure to represent a process
 struct Process {
     char name[MAX_NAME_LENGTH];
@@ -17,7 +15,6 @@ struct Process {
     int waitingTime;
     int priority;
 };
-
 // Structure to represent a task queue
 struct TaskQueue {
     struct Process processes[MAX_PROCESSES];
@@ -25,8 +22,10 @@ struct TaskQueue {
     int rear;
     int size;
 };
-
 int numOfAddedProcesses = 0;  
+
+struct TaskQueue originalTaskQueue;
+
 
 // Function prototypes
 void enqueue(struct TaskQueue* queue, struct Process process);
@@ -41,10 +40,10 @@ void printMetricsTable(struct TaskQueue* taskQueue);
 void removeProcess(struct TaskQueue* queue, char* processName);
 void clearInputBuffer();
 int min(int a, int b);
+void initializeOriginalTaskQueue(struct TaskQueue* taskQueue);
 
 void removeProcess(struct TaskQueue* queue, char* processName) {
     int found = 0;
-
     for (int i = queue->front; i <= queue->rear; i++) {
         if (strcmp(queue->processes[i].name, processName) == 0) {
             found = 1;
@@ -57,7 +56,6 @@ void removeProcess(struct TaskQueue* queue, char* processName) {
             break;
         }
     }
-
     if (found) {
         printf("Process '%s' removed successfully.\n", processName);
     } else {
@@ -70,7 +68,6 @@ void enqueue(struct TaskQueue* queue, struct Process process) {
         printf("Queue is full. Cannot enqueue more tasks.\n");
         return;
     }
-
     // Increase the rear index and add the process to the queue
     queue->rear++;
     queue->processes[queue->rear] = process;
@@ -91,20 +88,16 @@ struct Process dequeue(struct TaskQueue* queue) {
         emptyProcess.priority = 0;
         return emptyProcess;
     }
-
     // Retrieve the process at the front of the queue
     struct Process dequeuedProcess = queue->processes[queue->front];
-
     // Increase the front index and decrease the queue size
     queue->front++;
     queue->size--;
-
     if (queue->size == 0) {
         // Reset the queue indices if the queue becomes empty
         queue->front = 0;
         queue->rear = -1;
     }
-
     return dequeuedProcess;
 }
 // Checks if the task queue is empty
@@ -115,33 +108,25 @@ int isQueueEmpty(struct TaskQueue* queue) {
 int min(int a, int b) {
     return (a < b) ? a : b;
 }
-
 // Performs round-robin scheduling on the task queue with a given time quantum
 void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
     int currentTime = 0;
     int completedProcesses = 0;
-
     // Create a Gantt chart array to store process names and corresponding execution times
     struct GanttEntry {
         char processName[10];
         int executionTime;
     };
     struct GanttEntry ganttChart[MAX_PROCESSES * 100];  // Assuming maximum 100 time slots per process
-
     int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
-
     while (completedProcesses < taskQueue->size) {
         int i = taskQueue->front;
-
         while (i <= taskQueue->rear) {
             struct Process* process = &taskQueue->processes[i];
-
             if (process->remainingTime > 0) {
                 int executionTime = (process->remainingTime > timeQuantum) ? timeQuantum : process->remainingTime;
-
                 process->remainingTime -= executionTime;
                 currentTime += executionTime;
-
                 // Store the Gantt chart entry
                 strcpy(ganttChart[ganttIndex].processName, process->name);
                 ganttChart[ganttIndex].executionTime = executionTime;
@@ -156,7 +141,6 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
                         printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - executionTime, currentTime, process->name, process->remainingTime);
                     }
                 }
-
                 if (process->remainingTime == 0) {
                     // Process completed
                     process->completionTime = currentTime;
@@ -165,11 +149,9 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
                     completedProcesses++;
                 }
             }
-
             i = (i + 1) % MAX_PROCESSES;  // Circularly traverse the queue
         }
     }
-
     // Print the Gantt chart
     printf("\nGantt Chart:\n");
     printf("---------------------------------------------------------------------\n");
@@ -190,55 +172,77 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
     printProcessTable(taskQueue);
     float totalWaitingTime = 0;
     float totalTurnaroundTime = 0;
-
     printf("\nMetrics Table:\n");
-
 }
-
-
 // Performs FCFS scheduling on the task queue
 void fcfsScheduling(struct TaskQueue* taskQueue) {
     int currentTime = 0;
     int completedProcesses = 0;
-
     // Create a Gantt chart array to store process names and corresponding execution times
     struct GanttEntry {
         char processName[10];
         int executionTime;
     };
     struct GanttEntry ganttChart[MAX_PROCESSES * 100];  // Assuming maximum 100 time slots per process
-
     int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
-
     // Print processes with arrival time
     printf("\nProcess %s (Arrival Time: %d)\n", taskQueue->processes[taskQueue->front].name, taskQueue->processes[taskQueue->front].arrivalTime);
     for (int i = taskQueue->front + 1; i <= taskQueue->rear; i++) {
         printf("Process %s (Arrival Time: %d)\n", taskQueue->processes[i].name, taskQueue->processes[i].arrivalTime);
         printf("\n");
     }
-    
+    printf("\nThe order in which processes or threads are selected for execution:\n");
+
+    while (completedProcesses < taskQueue->size) {
+        int i = taskQueue->front;
+
+        while (i <= taskQueue->rear) {
+            struct Process* process = &taskQueue->processes[i];
+
+            if (process->remainingTime > 0 && process->arrivalTime <= currentTime) {
+                int executionTime = process->remainingTime;
+
+                process->remainingTime -= executionTime;
+                currentTime += executionTime;
+
     printf("The order in which processes or threads are selected for execution:\n");
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
 
+                // Store the Gantt chart entry
+                strcpy(ganttChart[ganttIndex].processName, process->name);
+                ganttChart[ganttIndex].executionTime = executionTime;
+                ganttIndex++;
         // Calculate waiting time
         process->waitingTime = currentTime - process->arrivalTime;
         if (process->waitingTime < 0)
             process->waitingTime = 0;
 
+                // Print the execution order
+                printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - executionTime, currentTime, process->name);
         // Calculate completion time and turnaround time
         process->completionTime = currentTime + process->burstTime;
         process->turnaroundTime = process->completionTime - process->arrivalTime;
 
+                if (process->remainingTime == 0) {
+                    // Process completed
+                    process->completionTime = currentTime;
+                    process->turnaroundTime = process->completionTime - process->arrivalTime;
+                    process->waitingTime = process->turnaroundTime - process->burstTime;
+                    completedProcesses++;
+                }
+            }
         currentTime = process->completionTime;
 
+            i++;
         // Print the execution order
-        if (process->remainingTime == 0) {
+        if (process->burstTime == 0) {
             printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
         } else {
-            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->remainingTime);
+            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->burstTime);
         }
 
+        currentTime++;
     }
 
     // Print the Gantt chart
@@ -259,7 +263,8 @@ void fcfsScheduling(struct TaskQueue* taskQueue) {
     // Print the process table and metrics table
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
-
+}
+}
 }
 
 // Performs SJF scheduling on the task queue
@@ -275,64 +280,31 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
             }
         }
     }
-
     int currentTime = 0;
-    int completedProcesses = 0;
-    // Create a Gantt chart array to store process names and corresponding execution times
-    struct GanttEntry {
-        char processName[10];
-        int executionTime;
-    };
-    struct GanttEntry ganttChart[MAX_PROCESSES * 100];  // Assuming maximum 100 time slots per process
-
-    int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
-
     printf("The order in which processes or threads are selected for execution:\n");
-    while (completedProcesses < taskQueue->size) {
-        int i = taskQueue->front;
-
-        while (i <= taskQueue->rear) {
-            struct Process* process = &taskQueue->processes[i];
-            if (process->remainingTime > 0) {
-                int executionTime = process->burstTime;
-                process->remainingTime -= executionTime;
-                currentTime += executionTime;    
-
-                // Store the Gantt chart entry
-                strcpy(ganttChart[ganttIndex].processName, process->name);
-                ganttChart[ganttIndex].executionTime = executionTime;
-                ganttIndex++;
-                
-                
-                // Print the execution order
-                if (process->arrivalTime <= currentTime - executionTime) {
-                    if (process->remainingTime == 0) {
-                        printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - executionTime, currentTime, process->name);
-                    } else {
-                        printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - executionTime, currentTime, process->name, process->remainingTime);
-                    }
-                }
-
-                if (process->remainingTime == 0) {
-                    // Process completed
-                    process->completionTime = currentTime;
-                    process->turnaroundTime = process->completionTime - process->arrivalTime;
-                    process->waitingTime = process->turnaroundTime - process->burstTime;
-                    completedProcesses++;
-                }
-            }
-
-            i = (i + 1) % MAX_PROCESSES;  // Circularly traverse the queue
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        // Calculate waiting time
+        process->waitingTime = currentTime - process->arrivalTime;
+        if (process->waitingTime < 0)
+            process->waitingTime = 0;
+        // Calculate completion time and turnaround time
+        process->completionTime = currentTime + process->burstTime;
+        process->turnaroundTime = process->completionTime - process->arrivalTime;
+        currentTime = process->completionTime;
+        // Print the execution order
+        if (process->burstTime == 0) {
+            printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
+        } else {
+            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->burstTime);
         }
     }
-
     // Print the process details
     printf("\nProcess Details:\n");
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process process = taskQueue->processes[i];
         printf("Process %s (Arrival Time: %d)\n", process.name, process.arrivalTime);
     }
-
     // Print the Gantt chart
     printf("\nGantt Chart:\n");
     printf("---------");
@@ -356,7 +328,6 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
 }
-
 // Helper function to reset the task queue
 void resetTaskQueue(struct TaskQueue* taskQueue) {
     taskQueue->front = 0;
@@ -370,87 +341,68 @@ void printProcessTable(struct TaskQueue* taskQueue) {
     printf("| Name  | Arrival Time    | Burst Time       | Priority     |\n");
     printf("|       |                 |                  |              |\n");
     printf("+-------+-----------------+------------------+--------------+\n");
-
     for (int i = taskQueue->front; i <= taskQueue->rear; i++) {
         printf("| %-5s | %-15d | %-16d | %-12d |\n",
                taskQueue->processes[i].name, taskQueue->processes[i].arrivalTime,
                taskQueue->processes[i].burstTime, taskQueue->processes[i].priority);
     }
-
     printf("+-------+-----------------+------------------+--------------+\n");
 }
-
 // Helper function to calculate and print the metrics table
 void printMetricsTable(struct TaskQueue* taskQueue) {
         float totalWaitingTime = 0;
     float totalTurnaroundTime = 0;
-
     printf("\nMetrics Table:\n");
     printf("--------------------------------------------------------------\n");
     printf("| Process | Completion Time | Turnaround Time | Waiting Time |\n");
     printf("--------------------------------------------------------------\n");
-
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
-
         totalWaitingTime += process->waitingTime;
         totalTurnaroundTime += process->turnaroundTime;
  
         printf("| %s      |         %d       |        %d         |        %d    |\n",
                process->name, process->completionTime, process->turnaroundTime, process->waitingTime);
     }
-
     printf("-----------------------------------------------------------------------------------------------------\n");
     printf("  AWT = %.2f\n", totalWaitingTime / taskQueue->size);
     printf("  TAT = %.2f\n", totalTurnaroundTime / taskQueue->size);
     printf("-----------------------------------------------------------------------------------------------------\n");
 }
-
-
 // Performs priority scheduling on the task queue with preemption
 void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
     int currentTime = 0;
     int completedProcesses = 0;
     int timeQuantum = 1;
-
     struct GanttEntry {
         char processName[10];
         int executionTime;
     };
     struct GanttEntry ganttChart[MAX_PROCESSES];
-
     int ganttIndex = 0;
-
     printf("\nProcess %s (Arrival Time: %d)\n", taskQueue->processes[taskQueue->front].name, taskQueue->processes[taskQueue->front].arrivalTime);
     for (int i = taskQueue->front + 1; i <= taskQueue->rear; i++) {
         printf("Process %s (Arrival Time: %d)\n", taskQueue->processes[i].name, taskQueue->processes[i].arrivalTime);
         printf("\n");
     }
     printf("\nThe order in which processes or threads are selected for execution:\n");
-
     while (completedProcesses < taskQueue->size) {
         int i = taskQueue->front;
         int highestPriority = INT_MAX;
         int selectedProcessIndex = -1;
-
         while (i <= taskQueue->rear) {
             struct Process* process = &taskQueue->processes[i];
-
             if (process->remainingTime > 0 && process->priority < highestPriority && process->arrivalTime <= currentTime) {
                 highestPriority = process->priority;
                 selectedProcessIndex = i;
             }
-
             i = (i + 1) % MAX_PROCESSES;
         }
-
         if (selectedProcessIndex != -1) {
             struct Process* process = &taskQueue->processes[selectedProcessIndex];
             int executionTime = min(process->remainingTime, timeQuantum);
-
             process->remainingTime -= executionTime;
             currentTime += executionTime;
-
             if (ganttIndex == 0 || strcmp(process->name, ganttChart[ganttIndex - 1].processName) != 0) {
                 strcpy(ganttChart[ganttIndex].processName, process->name);
                 ganttChart[ganttIndex].executionTime = executionTime;
@@ -458,7 +410,6 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
             } else {
                 ganttChart[ganttIndex - 1].executionTime += executionTime;
             }
-
             if (process->remainingTime == 0) {
                 process->completionTime = currentTime;
                 process->turnaroundTime = process->completionTime - process->arrivalTime;
@@ -470,7 +421,6 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
             currentTime++;
         }
     }
-
     printf("\nGantt Chart:\n");
     printf("-------------\n");
     printf("|");
@@ -488,9 +438,7 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
     // Print the process table and metrics table
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
-
 }
-
 void prioritySchedulingNonPreemptive(struct TaskQueue* taskQueue) {
     // Sort the tasks based on priority using bubble sort
     for (int i = 0; i < taskQueue->size - 1; i++) {
@@ -510,29 +458,23 @@ void prioritySchedulingNonPreemptive(struct TaskQueue* taskQueue) {
             }
         }
     }
-
    int currentTime = 0;
-
     printf("The order in which processes or threads are selected for execution:\n");
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
-
         // Calculate waiting time
         process->waitingTime = currentTime - process->arrivalTime;
         if (process->waitingTime < 0)
             process->waitingTime = 0;
-
         // Calculate completion time and turnaround time
         process->completionTime = currentTime + process->burstTime;
         process->turnaroundTime = process->completionTime - process->arrivalTime;
-
         currentTime = process->completionTime;
-
         // Print the execution order
-        if (process->remainingTime == 0) {
+        if (process->burstTime == 0) {
             printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
         } else {
-            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->remainingTime);
+            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->burstTime);
         }
     }
     // Print the Gantt chart
@@ -545,19 +487,15 @@ void prioritySchedulingNonPreemptive(struct TaskQueue* taskQueue) {
     }
     printf("\n");
     printf("-----------------------------------------\n");
-
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
         printf("%d", process->completionTime - process->burstTime);
-
         for (int j = 0; j < strlen(process->name) + 1; j++) {
             printf(" ");
         }
-
         if (i == taskQueue->size - 1) {
             printf("%d", process->completionTime);
         }
-
         printf("\t");
     }
     printf("\n");
@@ -565,14 +503,22 @@ void prioritySchedulingNonPreemptive(struct TaskQueue* taskQueue) {
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
 }
-
-
 void clearInputBuffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF) {
         // Discard characters until a newline or EOF is encountered
     }
 }
+
+void initializeOriginalTaskQueue(struct TaskQueue* taskQueue) {
+    originalTaskQueue.front = taskQueue->front;
+    originalTaskQueue.rear = taskQueue->rear;
+    originalTaskQueue.size = taskQueue->size;
+    for (int i = taskQueue->front; i <= taskQueue->rear; i++) {
+        originalTaskQueue.processes[i] = taskQueue->processes[i];
+    }
+}
+
 
 int main() {
     struct TaskQueue taskQueue;
@@ -597,7 +543,6 @@ int main() {
         switch (option) {
             case 1:
                 // Add a process to the task queue
-
                 printf("Enter process name: ");
                 scanf("%s", processName);
                 strcpy(process.name, processName);
@@ -609,10 +554,8 @@ int main() {
                         break;
                     }
                 }
-
                 if (process.name[0] > '\0') {
                     int validInput = 0; // Flag to track valid input
-
                     while (!validInput) {
                         printf("Enter arrival time: ");
                         if (scanf("%d", &process.arrivalTime) != 1) {
@@ -620,36 +563,28 @@ int main() {
                             clearInputBuffer();
                             continue;
                         }
-
                         printf("Enter burst time: ");
                         if (scanf("%d", &process.burstTime) != 1) {
                             printf("Invalid input for burst time. Please enter an integer.\n");
                             clearInputBuffer();
                             continue;
                         }
-
                         printf("Enter priority: ");
                         if (scanf("%d", &process.priority) != 1) {
                             printf("Invalid input for priority. Please enter an integer.\n");
                             clearInputBuffer();
                             continue;
                         }
-
                         validInput = 1;
                     }
-
                     process.remainingTime = process.burstTime;
                     process.completionTime = 0;
                     process.turnaroundTime = 0;
                     process.waitingTime = 0;
-
                     enqueue(&taskQueue, process);
-                    numOfAddedProcesses += 1;  
                     numOfAddedProcesses += 1;
                 }
-
                 break;
-
             case 2:
                 if (numOfAddedProcesses > 0){
                     // Remove a process from the task queue
@@ -663,45 +598,83 @@ int main() {
                 }
                 break;
             case 3:
-                if (numOfAddedProcesses > 0){
+                if (numOfAddedProcesses > 0) {
+                    initializeOriginalTaskQueue(&taskQueue);  // Initialize the original task queue
                     sjfScheduling(&taskQueue);
                     printf("SJF Scheduling completed.\n");
+                    // Reset the task queue to the original state
+                    taskQueue.front = originalTaskQueue.front;
+                    taskQueue.rear = originalTaskQueue.rear;
+                    taskQueue.size = originalTaskQueue.size;
+                    for (int i = taskQueue.front; i <= taskQueue.rear; i++) {
+                        taskQueue.processes[i] = originalTaskQueue.processes[i];
+                    }
                 } else {
                     printf("No processes added. Please add processes first.\n");
                 }
                 break;
+
             case 4:
-                if (numOfAddedProcesses > 0){
+                if (numOfAddedProcesses > 0) {
+                    initializeOriginalTaskQueue(&taskQueue);  // Initialize the original task queue
                     printf("Enter the time quantum: ");
                     scanf("%d", &timeQuantum);
                     roundRobinScheduling(&taskQueue, timeQuantum);
                     printf("Round Robin Scheduling completed.\n");
+                    // Reset the task queue to the original state
+                    taskQueue.front = originalTaskQueue.front;
+                    taskQueue.rear = originalTaskQueue.rear;
+                    taskQueue.size = originalTaskQueue.size;
+                    for (int i = taskQueue.front; i <= taskQueue.rear; i++) {
+                        taskQueue.processes[i] = originalTaskQueue.processes[i];
+                    }
                 } else {
                     printf("No processes added. Please add processes first.\n");
                 }
                 break;
+
             case 5:
-                if (numOfAddedProcesses > 0){
+                if (numOfAddedProcesses > 0) {
+                    initializeOriginalTaskQueue(&taskQueue);  // Initialize the original task queue
                     prioritySchedulingNonPreemptive(&taskQueue);
                     printf("Priority Scheduling completed.\n");
+                    // Reset the task queue to the original state
+                    taskQueue.front = originalTaskQueue.front;
+                    taskQueue.rear = originalTaskQueue.rear;
+                    taskQueue.size = originalTaskQueue.size;
+                    for (int i = taskQueue.front; i <= taskQueue.rear; i++) {
+                        taskQueue.processes[i] = originalTaskQueue.processes[i];
+                    }
                 } else {
                     printf("No processes added. Please add processes first.\n");
                 }
                 break;
+
             case 6:
-                if (numOfAddedProcesses > 0){
+                if (numOfAddedProcesses > 0) {
+                    initializeOriginalTaskQueue(&taskQueue);  // Initialize the original task queue
                     fcfsScheduling(&taskQueue);
                     printf("FCFS Scheduling completed.\n");
+                    // Reset the task queue to the original state
+                    taskQueue.front = originalTaskQueue.front;
+                    taskQueue.rear = originalTaskQueue.rear;
+                    taskQueue.size = originalTaskQueue.size;
+                    for (int i = taskQueue.front; i <= taskQueue.rear; i++) {
+                        taskQueue.processes[i] = originalTaskQueue.processes[i];
+                    }
                 } else {
                     printf("No processes added. Please add processes first.\n");
                 }
-                break;            
+                break;
+
             case 7:
                 printf("Exiting the program.\n");
                 break;
+
             default:
                 printf("Invalid option. Please try again.\n");
         }
     } while (option != 7);
+
     return 0;
 }
