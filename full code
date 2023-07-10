@@ -274,6 +274,7 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
 
     int currentTime = 0;
 
+    printf("The order in which processes or threads are selected for execution:\n");
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
 
@@ -287,13 +288,13 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
         process->turnaroundTime = process->completionTime - process->arrivalTime;
 
         currentTime = process->completionTime;
-    }
 
-    // Print the processes in the order of execution
-    printf("The order in which processes or threads are selected for execution:\n");
-    for (int i = 0; i < taskQueue->size; i++) {
-        struct Process process = taskQueue->processes[i];
-        printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", process.arrivalTime, process.completionTime, process.name);
+        // Print the execution order
+        if (process->burstTime == 0) {
+            printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
+        } else {
+            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->burstTime);
+        }
     }
 
     // Print the process details
@@ -302,8 +303,6 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
         struct Process process = taskQueue->processes[i];
         printf("Process %s (Arrival Time: %d)\n", process.name, process.arrivalTime);
     }
-
-
 
     // Print the Gantt chart
     printf("\nGantt Chart:\n");
@@ -325,6 +324,7 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
     }
     printf("\n");
 }
+
 // Helper function to reset the task queue
 void resetTaskQueue(struct TaskQueue* taskQueue) {
     taskQueue->front = 0;
