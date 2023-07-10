@@ -26,6 +26,8 @@ struct TaskQueue {
     int size;
 };
 
+int numOfAddedProcesses = 0;  
+
 // Function prototypes
 void enqueue(struct TaskQueue* queue, struct Process process);
 struct Process dequeue(struct TaskQueue* queue);
@@ -181,6 +183,14 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
         printf("------%d", cumulativeTime);
     }
     printf("\n");
+    
+    // Print the process table and metrics table
+    printProcessTable(taskQueue);
+    float totalWaitingTime = 0;
+    float totalTurnaroundTime = 0;
+
+    printf("\nMetrics Table:\n");
+
 }
 
 
@@ -256,6 +266,10 @@ void fcfsScheduling(struct TaskQueue* taskQueue) {
         printf("------%d", cumulativeTime);
     }
     printf("\n");
+    // Print the process table and metrics table
+    printProcessTable(taskQueue);
+    printMetricsTable(taskQueue);
+
 }
 
 // Performs SJF scheduling on the task queue
@@ -323,6 +337,9 @@ void sjfScheduling(struct TaskQueue* taskQueue) {
         printf("--------%d", taskQueue->processes[i].completionTime);
     }
     printf("\n");
+    // Print the process table and metrics table
+    printProcessTable(taskQueue);
+    printMetricsTable(taskQueue);
 }
 
 // Helper function to reset the task queue
@@ -350,13 +367,13 @@ void printProcessTable(struct TaskQueue* taskQueue) {
 
 // Helper function to calculate and print the metrics table
 void printMetricsTable(struct TaskQueue* taskQueue) {
-    float totalWaitingTime = 0;
+        float totalWaitingTime = 0;
     float totalTurnaroundTime = 0;
 
     printf("\nMetrics Table:\n");
-    printf("-----------------------------------------------------------------------------------------------------\n");
-    printf("| Process | Arrival Time | Burst Time | Priority | Completion Time | Turnaround Time | Waiting Time |\n");
-    printf("-----------------------------------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------\n");
+    printf("| Process | Completion Time | Turnaround Time | Waiting Time |\n");
+    printf("--------------------------------------------------------------\n");
 
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
@@ -364,9 +381,8 @@ void printMetricsTable(struct TaskQueue* taskQueue) {
         totalWaitingTime += process->waitingTime;
         totalTurnaroundTime += process->turnaroundTime;
  
-        printf("| %s      |      %d       |     %d      |     %d    |         %d       |        %d         |        %d    |\n",
-               process->name, process->arrivalTime, process->burstTime, process->priority,
-               process->completionTime, process->turnaroundTime, process->waitingTime);
+        printf("| %s      |         %d       |        %d         |        %d    |\n",
+               process->name, process->completionTime, process->turnaroundTime, process->waitingTime);
     }
 
     printf("-----------------------------------------------------------------------------------------------------\n");
@@ -454,6 +470,10 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
         printf("------%d", cumulativeTime);
     }
     printf("\n");
+    // Print the process table and metrics table
+    printProcessTable(taskQueue);
+    printMetricsTable(taskQueue);
+
 }
 
 
@@ -466,7 +486,7 @@ int main() {
     int option, timeQuantum;
     struct Process process;
 
-    int processesAdded = 0;  // Flag to track if processes have been added
+    
 
     do {
         printf("\nDynamic Scheduling Menu\n");
@@ -476,10 +496,7 @@ int main() {
         printf("4. Run Round Robin Scheduling\n");
         printf("5. Run Priority Scheduling\n");
         printf("6. Run FCFS Scheduling\n");
-        printf("7. Print Process Table\n");
-        printf("8. Print Metrics Table\n");
-        printf("9. Generate Reports\n");
-        printf("10. Exit\n");
+        printf("7. Exit\n");
         printf("Enter your option: ");
         scanf("%d", &option);
 
@@ -502,7 +519,7 @@ int main() {
                     }
                 }
 
-                if (process.name[0] != '\0') {
+                if (process.name[0] > '\0') {
                     printf("Enter arrival time: ");
                     scanf("%d", &process.arrivalTime);
                     printf("Enter burst time: ");
@@ -515,18 +532,24 @@ int main() {
                     process.waitingTime = 0;
 
                     enqueue(&taskQueue, process);
-                    processesAdded = 1;  // Set the flag to indicate that processes have been added
+                    numOfAddedProcesses =+ 1;  
                 }
 
                 break;
             case 2:
-                // Remove a process from the task queue
-                printf("\nEnter the name of the process to remove: ");
-                scanf("%s", process.name);
-                removeProcess(&taskQueue, process.name);
+                if (numOfAddedProcesses > 0){
+                    // Remove a process from the task queue
+                    printf("\nEnter the name of the process to remove: ");
+                    scanf("%s", process.name);
+                    removeProcess(&taskQueue, process.name);
+                    numOfAddedProcesses =- 1; 
+                }
+                else {
+                    printf("No processes added. Please add processes first.\n");
+                }
                 break;
             case 3:
-                if (processesAdded) {
+                if (numOfAddedProcesses > 0){
                     sjfScheduling(&taskQueue);
                     printf("SJF Scheduling completed.\n");
                 } else {
@@ -534,7 +557,7 @@ int main() {
                 }
                 break;
             case 4:
-                if (processesAdded) {
+                if (numOfAddedProcesses > 0){
                     printf("Enter the time quantum: ");
                     scanf("%d", &timeQuantum);
                     roundRobinScheduling(&taskQueue, timeQuantum);
@@ -544,7 +567,7 @@ int main() {
                 }
                 break;
             case 5:
-                if (processesAdded) {
+                if (numOfAddedProcesses > 0){
                     prioritySchedulingWithPreemption(&taskQueue);
                     printf("Priority Scheduling completed.\n");
                 } else {
@@ -552,7 +575,7 @@ int main() {
                 }
                 break;
             case 6:
-                if (processesAdded) {
+                if (numOfAddedProcesses > 0){
                     fcfsScheduling(&taskQueue);
                     printf("FCFS Scheduling completed.\n");
                 } else {
@@ -560,48 +583,12 @@ int main() {
                 }
                 break;            
             case 7:
-                if (processesAdded) {
-                    printProcessTable(&taskQueue);
-                } else {
-                    printf("No processes added. Please add processes first.\n");
-                }
-                break;
-            case 8:
-                if (processesAdded) {
-                    printMetricsTable(&taskQueue);
-                } else {
-                    printf("No processes added. Please add processes first.\n");
-                }
-                break;
-            case 9:
-                if (processesAdded) {
-                    printf("\nEnter the time quantum for the Round Robin: ");
-                    scanf("%d", &timeQuantum);
-                    printf("*************************************** SJF Scheduling Performance Metrics ***********************************************\n");
-                    sjfScheduling(&taskQueue);
-                    printMetricsTable(&taskQueue);
-                    resetTaskQueue(&taskQueue);
-
-                    printf("\n*************************************** Round Robin Scheduling Performance Metrics ***********************************************\n");
-                    roundRobinScheduling(&taskQueue, timeQuantum);
-                    printMetricsTable(&taskQueue);
-                    resetTaskQueue(&taskQueue);
-
-                    printf("\n*************************************** Priority Scheduling Performance Metrics ***********************************************\n");
-                     prioritySchedulingWithPreemption(&taskQueue);
-                    printMetricsTable(&taskQueue);
-                    resetTaskQueue(&taskQueue);
-                } else {
-                    printf("No processes added. Please add processes first.\n");
-                }
-                break;
-            case 10:
                 printf("Exiting the program.\n");
                 break;
             default:
                 printf("Invalid option. Please try again.\n");
         }
-    } while (option != 10);
+    } while (option != 7);
 
     return 0;
 }
