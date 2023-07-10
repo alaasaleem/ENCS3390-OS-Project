@@ -176,88 +176,54 @@ void roundRobinScheduling(struct TaskQueue* taskQueue, int timeQuantum) {
 }
 // Performs FCFS scheduling on the task queue
 void fcfsScheduling(struct TaskQueue* taskQueue) {
-    int currentTime = 0;
-    int completedProcesses = 0;
-    // Create a Gantt chart array to store process names and corresponding execution times
-    struct GanttEntry {
-        char processName[10];
-        int executionTime;
-    };
-    struct GanttEntry ganttChart[MAX_PROCESSES * 100];  // Assuming maximum 100 time slots per process
-    int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
-    // Print processes with arrival time
-    printf("\nProcess %s (Arrival Time: %d)\n", taskQueue->processes[taskQueue->front].name, taskQueue->processes[taskQueue->front].arrivalTime);
-    for (int i = taskQueue->front + 1; i <= taskQueue->rear; i++) {
-        printf("Process %s (Arrival Time: %d)\n", taskQueue->processes[i].name, taskQueue->processes[i].arrivalTime);
-        printf("\n");
+    // Sort the tasks based on arrival time in FCFS manner
+    for (int i = 0; i < taskQueue->size - 1; i++) {
+        for (int j = 0; j < taskQueue->size - i - 1; j++) {
+            if (taskQueue->processes[j].arrivalTime > taskQueue->processes[j + 1].arrivalTime) {
+                // Swap the processes if the current process has a higher arrival time than the next process
+                struct Process temp = taskQueue->processes[j];
+                taskQueue->processes[j] = taskQueue->processes[j + 1];
+                taskQueue->processes[j + 1] = temp;
+            }
+        }
     }
-    printf("\nThe order in which processes or threads are selected for execution:\n");
 
-    while (completedProcesses < taskQueue->size) {
-        int i = taskQueue->front;
-
-        while (i <= taskQueue->rear) {
-            struct Process* process = &taskQueue->processes[i];
-
-            if (process->remainingTime > 0 && process->arrivalTime <= currentTime) {
-                int executionTime = process->remainingTime;
-
-                process->remainingTime -= executionTime;
-                currentTime += executionTime;
-
+   int currentTime = 0;
     printf("The order in which processes or threads are selected for execution:\n");
     for (int i = 0; i < taskQueue->size; i++) {
         struct Process* process = &taskQueue->processes[i];
-
-                // Store the Gantt chart entry
-                strcpy(ganttChart[ganttIndex].processName, process->name);
-                ganttChart[ganttIndex].executionTime = executionTime;
-                ganttIndex++;
         // Calculate waiting time
         process->waitingTime = currentTime - process->arrivalTime;
         if (process->waitingTime < 0)
             process->waitingTime = 0;
-
-                // Print the execution order
-                printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - executionTime, currentTime, process->name);
         // Calculate completion time and turnaround time
         process->completionTime = currentTime + process->burstTime;
         process->turnaroundTime = process->completionTime - process->arrivalTime;
-
-                if (process->remainingTime == 0) {
-                    // Process completed
-                    process->completionTime = currentTime;
-                    process->turnaroundTime = process->completionTime - process->arrivalTime;
-                    process->waitingTime = process->turnaroundTime - process->burstTime;
-                    completedProcesses++;
-                }
-            }
         currentTime = process->completionTime;
-
-            i++;
         // Print the execution order
         if (process->burstTime == 0) {
             printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
-        } else {
-            printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", currentTime - process->burstTime, currentTime, process->name, process->burstTime);
         }
-
-        currentTime++;
-    }
-
     // Print the Gantt chart
     printf("\nGantt Chart:\n");
-    printf("-------------\n");
-    for (int i = 0; i < ganttIndex; i++) {
-        printf("| %s ", ganttChart[i].processName);
+    printf("-----------------------------------------\n");
+    printf("| ");
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        printf("%s\t| ", process->name);
     }
-    printf("|\n");
-    printf("-------------\n");
-    printf("0");
-    int cumulativeTime = 0;
-    for (int i = 0; i < ganttIndex; i++) {
-        cumulativeTime += ganttChart[i].executionTime;
-        printf("------%d", cumulativeTime);
+    printf("\n");
+    printf("-----------------------------------------\n");
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        printf("%d", process->completionTime - process->burstTime);
+        for (int j = 0; j < strlen(process->name) + 1; j++) {
+            printf(" ");
+        }
+        if (i == taskQueue->size - 1) {
+            printf("%d", process->completionTime);
+        }
+        printf("\t");
     }
     printf("\n");
     // Print the process table and metrics table
@@ -265,8 +231,6 @@ void fcfsScheduling(struct TaskQueue* taskQueue) {
     printMetricsTable(taskQueue);
 }
 }
-}
-
 // Performs SJF scheduling on the task queue
 void sjfScheduling(struct TaskQueue* taskQueue) {
     // Sort the tasks based on burst time using bubble sort
