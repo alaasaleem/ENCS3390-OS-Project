@@ -39,6 +39,7 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue);
 void printProcessTable(struct TaskQueue* taskQueue);
 void printMetricsTable(struct TaskQueue* taskQueue);
 void removeProcess(struct TaskQueue* queue, char* processName);
+void clearInputBuffer();
 int min(int a, int b);
 
 void removeProcess(struct TaskQueue* queue, char* processName) {
@@ -553,6 +554,12 @@ void prioritySchedulingNonPreemptive(struct TaskQueue* taskQueue) {
 }
 
 
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {
+        // Discard characters until a newline or EOF is encountered
+    }
+}
 
 
 int main() {
@@ -583,7 +590,6 @@ int main() {
         switch (option) {
             case 1:
                 // Add a process to the task queue
-
                 printf("Enter process name: ");
                 scanf("%s", processName);
                 strcpy(process.name, processName);
@@ -598,22 +604,43 @@ int main() {
                 }
 
                 if (process.name[0] > '\0') {
-                    printf("Enter arrival time: ");
-                    scanf("%d", &process.arrivalTime);
-                    printf("Enter burst time: ");
-                    scanf("%d", &process.burstTime);
-                    printf("Enter priority: ");
-                    scanf("%d", &process.priority);
+                    int validInput = 0; // Flag to track valid input
+
+                    while (!validInput) {
+                        printf("Enter arrival time: ");
+                        if (scanf("%d", &process.arrivalTime) != 1) {
+                            printf("Invalid input for arrival time. Please enter an integer.\n");
+                            clearInputBuffer();
+                            continue;
+                        }
+
+                        printf("Enter burst time: ");
+                        if (scanf("%d", &process.burstTime) != 1) {
+                            printf("Invalid input for burst time. Please enter an integer.\n");
+                            clearInputBuffer();
+                            continue;
+                        }
+
+                        printf("Enter priority: ");
+                        if (scanf("%d", &process.priority) != 1) {
+                            printf("Invalid input for priority. Please enter an integer.\n");
+                            clearInputBuffer();
+                            continue;
+                        }
+
+                        validInput = 1;
+                    }
+
                     process.remainingTime = process.burstTime;
                     process.completionTime = 0;
                     process.turnaroundTime = 0;
                     process.waitingTime = 0;
 
                     enqueue(&taskQueue, process);
-                    numOfAddedProcesses += 1;  
+                    numOfAddedProcesses += 1;
                 }
-
                 break;
+
             case 2:
                 if (numOfAddedProcesses > 0){
                     // Remove a process from the task queue
