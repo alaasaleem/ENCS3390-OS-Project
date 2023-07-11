@@ -201,14 +201,16 @@ void fcfsScheduling(struct TaskQueue* taskQueue) {
             printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", currentTime - process->burstTime, currentTime, process->name);
         }
     }
+
     // Print the Gantt chart
     printf("\nGantt Chart:\n");
     printf("---------------------------------------------------------------------\n");
+    printf("|");
     for (int i = 0; i < taskQueue->size; i++) {
-        printf("| %s ", taskQueue->processes[i].name);
+        printf(" %s |", taskQueue->processes[i].name);
     }
-    printf("|\n");
-    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+    printf("---------------------------------------------------------------------\n");
     printf("0");
     int cumulativeTime = 0;
     for (int i = 0; i < taskQueue->size; i++) {
@@ -221,6 +223,8 @@ void fcfsScheduling(struct TaskQueue* taskQueue) {
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
 }
+
+
 
 // Performs SJF scheduling on the task queue (non-preemptive)
 void sjfNonPreemptiveScheduling(struct TaskQueue* taskQueue) {
