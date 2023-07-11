@@ -452,20 +452,16 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
     int currentTime = 0;
     int completedProcesses = 0;
     int timeQuantum = 1;
+    // Create a Gantt chart array to store process names, start times, and end times
     struct GanttEntry {
         char processName[10];
         int startTime;
-        int executionTime;
+        int endTime;
     };
     struct GanttEntry ganttChart[MAX_PROCESSES];
-    int ganttIndex = 0;
-    
-    printf("\nProcess %s (Arrival Time: %d)\n", taskQueue->processes[taskQueue->front].name, taskQueue->processes[taskQueue->front].arrivalTime);
-    for (int i = taskQueue->front + 1; i <= taskQueue->rear; i++) {
-        printf("Process %s (Arrival Time: %d)\n", taskQueue->processes[i].name, taskQueue->processes[i].arrivalTime);
-        printf("\n");
-    }
-    
+    int ganttIndex = 0;  // Index to keep track of the Gantt chart entries
+
+
     printf("\nThe order in which processes or threads are selected for execution:\n");
     while (completedProcesses < taskQueue->size) {
         int i = taskQueue->front;
@@ -484,48 +480,74 @@ void prioritySchedulingWithPreemption(struct TaskQueue* taskQueue) {
             int executionTime = min(process->remainingTime, timeQuantum);
             process->remainingTime -= executionTime;
             currentTime += executionTime;
-            
+
             // Store the Gantt chart entry
-            if (ganttIndex == 0 || strcmp(process->name, ganttChart[ganttIndex - 1].processName) != 0) {
-                strcpy(ganttChart[ganttIndex].processName, process->name);
-                ganttChart[ganttIndex].startTime = currentTime - executionTime;
-                ganttChart[ganttIndex].executionTime = executionTime;
-                ganttIndex++;
+            if (ganttIndex > 0 && strcmp(ganttChart[ganttIndex - 1].processName, process->name) == 0) {
+                ganttChart[ganttIndex - 1].endTime = currentTime;
             } else {
-                ganttChart[ganttIndex - 1].executionTime += executionTime;
+                strcpy(ganttChart[ganttIndex].processName, process->name);
+
+                // Set the start time as the current time if it's the first allocation for the process
+                if (ganttIndex == 0 || strcmp(ganttChart[ganttIndex - 1].processName, process->name) != 0) {
+                    ganttChart[ganttIndex].startTime = currentTime - 1;
+                }
+
+                ganttChart[ganttIndex].endTime = currentTime;
+                ganttIndex++;
             }
-            
+
+            // Print the execution order
+            if (process->remainingTime == 0) {
+                printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", ganttChart[ganttIndex - 1].startTime, currentTime, process->name);
+            } else {
+                printf("From \"%d\" to \"%d\": \"%s\" (%d time units left)\n", ganttChart[ganttIndex - 1].startTime, currentTime, process->name, process->remainingTime);
+            }
+
+            // Process completed
             if (process->remainingTime == 0) {
                 process->completionTime = currentTime;
                 process->turnaroundTime = process->completionTime - process->arrivalTime;
                 process->waitingTime = process->turnaroundTime - process->burstTime;
                 completedProcesses++;
-                printf("From \"%d\" to \"%d\": \"%s\" (Completed)\n", ganttChart[ganttIndex - 1].startTime, currentTime, process->name);
             }
         } else {
             currentTime++;
         }
     }
-    
-    printf("\nGantt Chart:\n");
-    printf("-------------\n");
-    printf("|");
-    for (int i = 0; i < ganttIndex; i++) {
-        printf(" %s |", ganttChart[i].processName);
+    // Set the start time for each process based on the first appearance in the Gantt chart
+    for (int i = 0; i < taskQueue->size; i++) {
+        struct Process* process = &taskQueue->processes[i];
+        for (int j = 0; j < ganttIndex; j++) {
+            if (strcmp(process->name, ganttChart[j].processName) == 0) {
+                process->startTime = ganttChart[j].startTime;
+                break;
+            }
+        }
     }
-    printf("\n-------------\n");
-    printf("0");
-    int cumulativeTime = 0;
+
+    // Print the Gantt chart
+    printf("\nGantt Chart:\n");
+    printf("---------------------------------------------------------------------\n");
+    printf("| ");
     for (int i = 0; i < ganttIndex; i++) {
-        cumulativeTime += ganttChart[i].executionTime;
-        printf("------%d", cumulativeTime);
+        printf("%s ", ganttChart[i].processName);
+        if (i < ganttIndex - 1) {
+            printf("| ");
+        }
+    }
+    printf("|\n");
+    printf("---------------------------------------------------------------------\n");
+    printf("0");
+    for (int i = 0; i < ganttIndex; i++) {
+        printf("------%d", ganttChart[i].endTime);
     }
     printf("\n");
-    
+
     // Print the process table and metrics table
     printProcessTable(taskQueue);
     printMetricsTable(taskQueue);
 }
+
 
 // Performs priority scheduling on the task queue with non preemption
 void prioritySchedulingWithoutPreemption(struct TaskQueue* taskQueue)
