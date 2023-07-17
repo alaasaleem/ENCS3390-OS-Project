@@ -1,6 +1,6 @@
 # CPU Scheduling Simulator
 
-The CPU Scheduling Simulator is an operating system component that allows users to simulate and evaluate various CPU scheduling algorithms. It provides functionalities to configure scheduling parameters, simulate task arrival and completion, evaluate performance metrics, visualize scheduling activities, and support dynamic scheduling scenarios.
+The CPU Scheduling Simulator program allows users to simulate and evaluate various CPU scheduling algorithms. It provides functionalities to configure scheduling parameters, simulate task arrival and completion, evaluate performance metrics and gantt chart, and support dynamic scheduling scenarios.
 
 ## Features
 
