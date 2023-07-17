@@ -4,7 +4,7 @@ The CPU Scheduling Simulator program allows users to simulate and evaluate vario
 
 ## Features
 
-- Common CPU scheduling algorithms such as Round Robin, Priority Scheduling, Shortest Job First (SJF), and FCFS.
+- Run common CPU scheduling algorithms such as Round Robin, Priority Scheduling, Shortest Job First (SJF), and FCFS.
 
 - Allow users to dynamically configure scheduling parameters such as time quantum for Round Robin, priority levels for Priority Scheduling, and burst time for SJF.
 
