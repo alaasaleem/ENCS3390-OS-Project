@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #define MAX_NAME_LENGTH 10
 #define MAX_PROCESSES 100
+
 // Structure to represent a process
 struct Process {
     char name[MAX_NAME_LENGTH];
@@ -18,6 +19,7 @@ struct Process {
     int responseTime;
     int startTime;
 };
+
 // Structure to represent a task queue
 struct TaskQueue {
     struct Process processes[MAX_PROCESSES];
