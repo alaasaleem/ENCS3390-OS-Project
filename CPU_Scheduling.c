@@ -653,7 +653,6 @@ case 1:
     }
     break;
 
-
             case 2:
                 if (numOfAddedProcesses > 0){
                     // Remove a process from the task queue
