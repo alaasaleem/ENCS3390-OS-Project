@@ -30,7 +30,6 @@ gcc CPU_Scheduling.c -o CPU_Scheduling
 ./CPU_Scheduling
 ```
 
-## Team Members
 ## Contributors
 
 - [Ibaa Taleeb-1203073](https://github.com/IbaaTaleeb)
