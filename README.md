@@ -17,15 +17,3 @@ The CPU Scheduling Simulator is an operating system component that allows users 
 - Dynamic Scheduling: Support dynamic scheduling scenarios where tasks or processes can arrive and leave the system during runtime. Implement mechanisms to handle task arrivals, departures, and context switching between processes or threads.
 
 - Error Handling: Implement error handling mechanisms to handle exceptions or errors that occur during CPU scheduling. Provide appropriate error reporting and recovery mechanisms to maintain the stability of the system.
-
-## Usage
-
-1. Configure Scheduling Parameters: Use the provided interface or command-line commands to configure the scheduling parameters based on the chosen algorithm. For example, set the time quantum for Round Robin or define priority levels for Priority Scheduling.
-
-2. Simulate Task Arrival and Completion: Generate a sequence of tasks or processes with their arrival times and burst times. Simulate the execution and completion of tasks based on their burst times or execution time.
-
-3. Evaluate Performance Metrics: Calculate and evaluate performance metrics such as turnaround time, waiting time, response time, or CPU utilization. Track and update these metrics as tasks or processes are executed and completed.
-
-4. Visualize and Compare Scheduling Activities: Utilize visualizations, such as Gantt charts, to showcase the scheduling activities and the execution timeline of tasks or processes. Generate reports or summaries presenting the performance metrics for each scheduling algorithm. Compare the performance of different algorithms based on the obtained metrics.
-
-5. Handle Dynamic Scheduling Scenarios: Test the system's ability to handle dynamic scheduling scenarios where tasks or processes can arrive and leave the system during runtime. Observe the behavior of the scheduling algorithms and the impact on performance metrics.
