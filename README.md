@@ -32,6 +32,6 @@ gcc CPU_Scheduling.c -o CPU_Scheduling
 
 ## Contributors
 
-- [Ibaa Taleeb-1203073](https://github.com/IbaaTaleeb)
-- [Alaa Saleem-1200001](https://github.com/alaasaleem)
-- [Rebal Zabade-1210162](https://github.com/RebalZabade)
+- [Ibaa Taleeb](https://github.com/IbaaTaleeb)
+- [Alaa Saleem](https://github.com/alaasaleem)
+- [Rebal Zabade](https://github.com/RebalZabade)
