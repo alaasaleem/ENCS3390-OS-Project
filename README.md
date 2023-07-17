@@ -31,7 +31,8 @@ gcc CPU_Scheduling.c -o CPU_Scheduling
 ```
 
 ## Team Members
+## Contributors
 
-- Alaa Saleem-1200001
-- Ibaa Taleeb-1203073
-- Rebal Zabade-1210162
+- [Ibaa Taleeb-1203073](https://github.com/IbaaTaleeb)
+- [Alaa Saleem-1200001](https://github.com/alaasaleem)
+- [Rebal Zabade-1210162](https://github.com/RebalZabade)
